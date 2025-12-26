@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,317 +6,250 @@
 <title>AI Chat Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #eef;
-    margin: 0;
-    text-align: center;
-}
+body { font-family: Arial; background: #eef; margin: 0; text-align: center; }
+header { display: flex; justify-content: space-between; padding: 10px; background: #222; color: #fff; }
+#storeBtn, #codeBtn { cursor: pointer; margin: 0 5px; }
+#logo { font-size: 90px; margin: 10px; }
+select, button, input { padding: 8px; font-size: 16px; margin: 5px; }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    background: #222;
-    color: white;
-}
-
-#coins { font-size: 18px; }
-#storeBtn { cursor: pointer; }
-
-#logo {
-    font-size: 90px;
-    margin: 10px;
-}
-
-.hidden { display: none; }
-
-select, button, input {
-    padding: 8px;
-    font-size: 16px;
-    margin: 5px;
-}
-
-#response {
-    font-size: 28px;
-    margin-top: 20px;
-    font-weight: bold;
-}
-
-.lockedText {
-    color: red;
-    font-size: 26px;
-    font-weight: bold;
-}
-
+#response { font-size: 28px; margin-top: 20px; font-weight: bold; }
 .watermelon { color: green; }
 .zombie { color: darkgreen; }
 .demon { color: purple; }
 
-.bar {
-    width: 80%;
-    height: 30px;
-    background: #aaa; /* abu-abu */
-    margin: 10px auto;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
+.bar { width: 80%; height: 30px; background: #aaa; margin: 10px auto; border-radius: 10px; overflow: hidden; position: relative; }
+.fill { height: 100%; position: absolute; top: 0; }
+.hpGreen { background: green; left: 0; }
+.hpRed { background: red; right: 0; }
+.anger { background: orange; left: 0; }
+
+.hidden { display: none; }
+
+.effect { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; font-size: 200px; z-index: 999; }
+.hit { background: rgba(255,0,0,.35); }
+.parry { background: rgba(0,120,255,.45); }
+.diamond { background: rgba(128,0,128,.5); }
+.stab { background: rgba(0,0,0,.35); }
+.shake { animation: shake .3s linear 6; }
+@keyframes shake {
+0% { transform: translate(0); }
+25% { transform: translate(-10px); }
+50% { transform: translate(10px); }
+75% { transform: translate(-10px); }
+100% { transform: translate(0); }
 }
 
-.fill {
-    height: 100%;
-    position: absolute;
-    top: 0;
+/* --- Modal Code Menu --- */
+#codeModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
 }
 
-.hpGreen {
-    background: green;
-    left: 0;
-    z-index: 1;
-    transition: width 0.3s;
+#codeContent {
+  background: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
 
-.hpRed {
-    background: red;
-    right: 0;
-    z-index: 2;
-    transition: width 0.3s;
+#codeContent h2 {
+  margin-bottom: 15px;
+  color: #333;
 }
 
-.anger { 
-    background: orange; 
-    width: 0%; 
-    z-index: 3; 
-    position: absolute;
-    top:0;
-    left:0;
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.3s;
+#codeInput {
+  width: 80%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+  margin-bottom: 15px;
 }
 
-.store {
-    background: #fff;
-    padding: 20px;
+#submitCodeBtn {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4CAF50;
+  color: white;
+  cursor: pointer;
 }
+
+#submitCodeBtn:hover { background: #45a049; }
 </style>
 </head>
 <body>
 
 <header>
-    <div id="storeBtn" onclick="openStore()">🛒 Store</div>
-    <div id="coins">🪙 0</div>
+<div>
+<span id="storeBtn" onclick="openStore()">🛒 Store</span> |
+<span id="codeBtn" onclick="openCodeMenu()">▶️🐦 Code</span>
+</div>
+<div id="coins">🪙 0</div>
 </header>
 
 <div id="logo">🤖</div>
 
-<!-- ACCOUNT -->
+<!-- Account -->
 <div id="account">
-    <h2>Create Account</h2>
-    <input id="username" placeholder="Username"><br>
-    <input id="password" type="password" placeholder="Password"><br>
-    <button onclick="createAccount()">Create</button>
+<h2>Create Account</h2>
+<input id="username" placeholder="Username"><br>
+<input id="password" type="password" placeholder="Password"><br>
+<button onclick="createAccount()">Create</button>
 </div>
 
-<!-- STORE -->
-<div id="store" class="hidden store">
-    <h2>Store</h2>
-    <button onclick="buyAI('watermelon')">🍉 Watermelon – 1500 🪙</button><br><br>
-    <button onclick="buyAI('demon')">😈 Demon – 750 🪙</button><br><br>
-    <button onclick="closeStore()">⬅ Back</button>
+<!-- Store -->
+<div id="store" class="hidden">
+<h2>Store</h2>
+<button onclick="buyAI('watermelon')">🍉 Watermelon – 1500 🪙</button><br><br>
+<button onclick="buyAI('demon')">😈 Demon – 750 🪙</button><br><br>
+<button onclick="buyShield()">🛡️ Shield +50 HP – 500 🪙</button><br><br>
+<button onclick="buySword()">⚔️ Sword – 1000 🪙</button><br><br>
+<button onclick="buyDiamond()">🗡️ Diamond Sword – 2000 🪙</button><br><br>
+<button onclick="closeStore()">⬅ Back</button>
 </div>
 
-<!-- CHAT -->
+<!-- Chat -->
 <div id="chat" class="hidden">
-    <h2>Choose AI</h2>
-    <select id="ai" onchange="updateAI()">
-        <option value="">Select AI</option>
-        <option value="watermelon">Watermelon 🍉</option>
-        <option value="zombie">Zomboy 🧟‍♂️</option>
-        <option value="demon">Demon 😈</option>
-    </select>
+<h2>Choose AI</h2>
+<select id="ai" onchange="updateAI()">
+<option value="">Select AI</option>
+<option value="watermelon">Watermelon 🍉</option>
+<option value="zombie">Zomboy 🧟‍♂️</option>
+<option value="demon">Demon 😈</option>
+</select><br><br>
 
-    <br><br>
-    <select id="options"></select><br>
-    <button id="sendBtn" onclick="send()">Send</button>
+<select id="options"></select><br>
+<button onclick="send()">Send</button>
 
-    <!-- HP Bar -->
-    <div class="bar">
-        <div id="hpGreen" class="fill hpGreen"></div>
-        <div id="hpRed" class="fill hpRed"></div>
-    </div>
+<div class="bar">
+<div id="hpGreen" class="fill hpGreen"></div>
+<div id="hpRed" class="fill hpRed"></div>
+</div>
 
-    <!-- Anger Bar -->
-    <div class="bar">
-        <div id="anger" class="anger"></div>
-    </div>
+<div class="bar">
+<div id="anger" class="fill anger"></div>
+</div>
 
-    <div id="response"></div>
+<div id="stabBtnDiv" class="hidden"><button id="stabBtn" onclick="stabAI()">STAB 🗡️</button></div>
+
+<div id="response"></div>
+</div>
+
+<div id="hit" class="effect hit">👊</div>
+<div id="parry" class="effect parry">⚔️</div>
+<div id="diamondFx" class="effect diamond">🗡️</div>
+
+<!-- Modal Code -->
+<div id="codeModal">
+<div id="codeContent">
+<h2>PLEASE ENTER CODE</h2>
+<input type="text" id="codeInput" placeholder="Enter your code here..."><br>
+<button id="submitCodeBtn" onclick="submitCode()">Submit</button>
+</div>
 </div>
 
 <script>
-let coins = 0;
-let owned = { zombie: true };
-let anger = 0;
-let maxHP = 175;
-let hpPercent = maxHP;
+let coins = 0, anger = 0, maxHP = 175, hp = maxHP;
+let owned = { zombie:true }, hasSword=false, hasDiamond=false, equip="none", hasShield=false;
+let parryCount=0, currentAI=null, aiHP=0;
 
-const coinsEl = document.getElementById("coins");
-const response = document.getElementById("response");
-const options = document.getElementById("options");
-const logo = document.getElementById("logo");
-const sendBtn = document.getElementById("sendBtn");
-const hpGreen = document.getElementById("hpGreen");
-const hpRed = document.getElementById("hpRed");
-const angerBar = document.getElementById("anger");
+const hpGreen=document.getElementById("hpGreen");
+const hpRed=document.getElementById("hpRed");
+const angerBar=document.getElementById("anger");
+const coinsEl=document.getElementById("coins");
+const response=document.getElementById("response");
+const options=document.getElementById("options");
+const logo=document.getElementById("logo");
+const hitFx=document.getElementById("hit");
+const parryFx=document.getElementById("parry");
+const diamondFx=document.getElementById("diamondFx");
+const stabBtnDiv=document.getElementById("stabBtnDiv");
+const stabBtn=document.getElementById("stabBtn");
+const codeModal=document.getElementById("codeModal");
+const codeInput=document.getElementById("codeInput");
 
-function updateCoins() {
-    coinsEl.innerText = "🪙 " + coins;
+function updateBars(){
+  hpGreen.style.width=(hp/maxHP*100)+"%";
+  hpRed.style.width=((maxHP-hp)/maxHP*100)+"%";
+  angerBar.style.width=anger+"%";
+  coinsEl.innerText="🪙 "+coins;
 }
 
-function createAccount() {
-    if (username.value && password.value) {
-        account.classList.add("hidden");
-        chat.classList.remove("hidden");
-        updateCoins();
-    } else alert("Fill username & password!");
-}
-
-function openStore() {
-    store.classList.remove("hidden");
-    chat.classList.add("hidden");
-}
-
-function closeStore() {
-    store.classList.add("hidden");
+function createAccount(){
+  if(username.value && password.value){
+    account.classList.add("hidden");
     chat.classList.remove("hidden");
+    updateBars();
+  }
 }
 
-function buyAI(ai) {
-    const price = ai === "watermelon" ? 1500 : 750;
-    if (owned[ai]) return alert("Already owned!");
-    if (coins >= price) {
-        coins -= price;
-        owned[ai] = true;
-        updateCoins();
-        alert("AI Unlocked!");
-    } else alert("Not enough coins!");
+function openStore(){ store.classList.remove("hidden"); chat.classList.add("hidden"); }
+function closeStore(){ store.classList.add("hidden"); chat.classList.remove("hidden"); }
+
+function buyAI(ai){ const price=ai==="watermelon"?1500:750; if(owned[ai]||coins<price)return; coins-=price; owned[ai]=true; updateBars(); }
+function buyShield(){ if(coins<500)return; coins-=500; maxHP+=50; hp+=50; updateBars(); hasShield=true; }
+function buySword(){ if(coins<1000||hasSword)return; coins-=1000; hasSword=true; updateBars(); }
+function buyDiamond(){ if(coins<2000||hasDiamond)return; coins-=2000; hasDiamond=true; updateBars(); }
+
+function updateAI(){
+  anger=0; updateBars(); response.innerText="";
+  const ai=document.getElementById("ai").value; currentAI=ai; stabBtnDiv.classList.add("hidden");
+  if(ai&&!owned[ai]){ logo.innerText="🔒"; options.innerHTML=""; return; }
+  if(ai==="watermelon"){ logo.innerText="🍉"; aiHP=20; options.innerHTML=`<option value="WHO">WHO ARE U</option><option value="EAT">CAN I EAT U?</option><option value="BITTER">WATERMELON IS BITTER!!</option><option value="LEMON">WATERMELON OR LEMON</option>`}
+  if(ai==="zombie"){ logo.innerText="🧟‍♂️"; aiHP=100; options.innerHTML=`<option value="WHO">WHO ARE U</option><option value="BRAIN">IS MY BRAIN DELICIOUS?</option><option value="NO_BRAIN">U WANT MY BRAIN CUZ U HAVE NO BRAIN!</option><option value="BREAIN">I WANZ YO BREAINZZZ</option>`}
+  if(ai==="demon"){ logo.innerText="😈"; aiHP=200; options.innerHTML=`<option value="WHO">Who are u</option><option value="HATE">I HATE U</option><option value="LOSER">LOSER</option><option value="HAHA">HAHAHAHA</option>`}
 }
 
-function updateAI() {
-    const ai = document.getElementById("ai").value;
+function effect(el){ el.style.display="flex"; document.body.classList.add("shake"); setTimeout(()=>{ el.style.display="none"; document.body.classList.remove("shake"); },2000); }
 
-    anger = 0;
-    angerBar.style.width = "0%";
-    options.innerHTML = "";
-    response.innerText = "";
+function send(){
+  if(!currentAI) return;
+  let msg = options.value, reply="", add=0, dmg=20, parrySuccess=false;
+  if(currentAI==="watermelon"){ if(msg==="WHO"){reply="I AM WATERMELON 😈"; add=10} if(msg==="EAT"){reply="DON'T EAT ME 😡"; add=20} if(msg==="BITTER"){reply="NO U BITTER"; add=35} if(msg==="LEMON"){reply="WATERMELON OF COURSE!!"; add=25}}
+  if(currentAI==="zombie"){ if(msg==="WHO"){reply="I WANZ YO BREAINZZ"; add=25} if(msg==="BRAIN"){reply="VERY DELICIOUSSS"; add=25} if(msg==="NO_BRAIN"){reply="GRRR I WANZZ BRRAAINNZZZ"; add=40} if(msg==="BREAIN"){reply="GRRRRRRRR"; add=25}}
+  if(currentAI==="demon"){ if(msg==="WHO"){reply="I AM DEMON"; add=10} if(msg==="HATE"){reply="WHAT GRRR"; add=25} if(msg==="LOSER"){reply="ITS U"; add=35} if(msg==="HAHA"){reply="WHATT?"; add=15}}
 
-    if (ai && !owned[ai]) {
-        logo.innerText = "🔒";
-        response.innerHTML = "<div class='lockedText'>AI LOCKED<br>BUY IN STORE 🛒</div>";
-        options.disabled = true;
-        sendBtn.disabled = true;
-        return;
-    }
-
-    options.disabled = false;
-    sendBtn.disabled = false;
-
-    if (ai === "watermelon") {
-        logo.innerText = "🍉";
-        options.innerHTML = `
-            <option value="WHO">WHO ARE U</option>
-            <option value="EAT">CAN I EAT U?</option>
-            <option value="BITTER">WATERMELON IS BITTER!!</option>
-            <option value="LEMON">WATERMELON OR LEMON</option>`;
-    }
-
-    if (ai === "zombie") {
-        logo.innerText = "🧟‍♂️";
-        options.innerHTML = `
-            <option value="WHO">WHO ARE U</option>
-            <option value="BRAIN">IS MY BRAIN DELICIOUS?</option>
-            <option value="NO_BRAIN">U WANT TO EAT MY BRAIN CUZ U HAVE NO BRAIN!</option>
-            <option value="BREAIN">I WANZ YO BREAINZZZ</option>`;
-    }
-
-    if (ai === "demon") {
-        logo.innerText = "😈";
-        options.innerHTML = `
-            <option value="WHO">Who are u</option>
-            <option value="HATE">I HATE U</option>
-            <option value="LOSER">LOSER</option>
-            <option value="HAHA">HAHAHAHA</option>`;
-    }
+  anger += add;
+  if(anger>=100){
+    anger=0; let parryChance=0; 
+    if(equip==="diamond") parryChance=0.45; else if(equip==="sword") parryChance=0.25;
+    if(Math.random()<parryChance){ parrySuccess=true; coins+=equip==="diamond"?200:100; if(equip==="diamond"){ parryCount++; if(parryCount%3===0) stabBtnDiv.classList.remove("hidden")} effect(equip==="diamond"?diamondFx:parryFx);}
+    else { hp-=dmg; effect(hitFx); }
+    coins+=50;
+  }
+  if(hp<=0){ coins-=100; if(coins<0) coins=0; hp=maxHP; }
+  response.className=currentAI; response.innerText="AI: "+reply;
+  updateBars();
 }
 
-function send() {
-    const ai = document.getElementById("ai").value;
-    const msg = options.value;
-    let reply = "", add = 0;
-    let damage = 0;
-
-    // Watermelon
-    if (ai === "watermelon") {
-        if (msg === "WHO") { reply = "AI: I AM WATERMELON 😈"; add = 10; damage = 5; }
-        if (msg === "EAT") { reply = "AI: I AM WATERMELON 😈"; add = 20; damage = 10; }
-        if (msg === "BITTER") { reply = "NO U BITTER"; add = 35; damage = 15; }
-        if (msg === "LEMON") { reply = "WATERMELON, WHAT KIND OF QUESTION IS THAT!!"; add = 25; damage = 10; }
-    }
-
-    // Zomboy
-    if (ai === "zombie") {
-        if (msg === "WHO") { reply = "AI: I WANZ YO BREAINZZ 🧟‍♂️"; add = 25; damage = 10; }
-        if (msg === "BRAIN") { reply = "AI: I WANZ YO BREAINZZ 🧟‍♂️"; add = 25; damage = 10; }
-        if (msg === "NO_BRAIN") { reply = "GRR I WANZZ BRRAAINNZZZ"; add = 40; damage = 20; }
-        if (msg === "BREAIN") { reply = "GRRRRRRRRR"; add = 25; damage = 10; }
-    }
-
-    // Demon
-    if (ai === "demon") {
-        if (msg === "WHO") { reply = "AI: ME?. I AM DEMON"; add = 10; damage = 5; }
-        if (msg === "HATE") { reply = "AI: WHAT GRRR"; add = 25; damage = 15; }
-        if (msg === "LOSER") { reply = "AI: ITS U"; add = 35; damage = 20; }
-        if (msg === "HAHA") { reply = "AI: WHATT?"; add = 15; damage = 5; }
-    }
-
-    // Update anger
-    anger += add;
-
-    // HIT HP cuma saat anger penuh
-    if (anger >= 100) {
-        reply += " 👊";
-        coins += 50;
-        updateCoins();
-
-        hpPercent -= damage;
-        if (hpPercent < 0) hpPercent = 0;
-
-        anger = 0; // reset anger
-    }
-
-    // Update anger bar
-    angerBar.style.width = anger + "%";
-
-    // Update HP bar dengan dua div
-    hpGreen.style.width = (hpPercent / maxHP * 100) + "%";
-    hpRed.style.width = ((maxHP - hpPercent) / maxHP * 100) + "%";
-
-    // cek HP habis
-    if (hpPercent <= 0) {
-        coins -= 100;
-        if (coins < 0) coins = 0;
-        updateCoins();
-        alert("HP habis! Coins -100");
-        hpPercent = maxHP;
-        hpGreen.style.width = "100%";
-        hpRed.style.width = "0%";
-    }
-
-    response.className = ai;
-    response.innerText = reply;
+function stabAI(){
+  if(!currentAI||aiHP<=0) return;
+  aiHP -= 25; coins+=250; stabBtnDiv.classList.add("hidden");
+  if(aiHP<=0){ coins+=1000; aiHP=0; }
+  alert(currentAI.toUpperCase()+" HP after stab: "+aiHP);
+  updateBars();
 }
+
+/* --- CODE MENU --- */
+function openCodeMenu(){ codeModal.style.display="flex"; }
+function submitCode(){
+  const codeVal = codeInput.value.trim();
+  if(codeVal==="GUGUGAGA123"){ coins+=3000; alert("Code accepted! +3000🪙"); } 
+  else alert("Invalid code!"); 
+  codeInput.value=""; codeModal.style.display="none"; updateBars();
+}
+
+updateBars();
 </script>
-
 </body>
 </html>
