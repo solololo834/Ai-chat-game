@@ -64,14 +64,35 @@ select, button, input {
 
 .fill {
     height: 100%;
-    transition: width 0.3s;
     position: absolute;
     top: 0;
-    left: 0;
 }
 
-.hp { background: green; width: 100%; z-index: 1; }
-.anger { background: orange; width: 0%; z-index: 2; }
+.hpGreen {
+    background: green;
+    left: 0;
+    z-index: 1;
+    transition: width 0.3s;
+}
+
+.hpRed {
+    background: red;
+    right: 0;
+    z-index: 2;
+    transition: width 0.3s;
+}
+
+.anger { 
+    background: orange; 
+    width: 0%; 
+    z-index: 3; 
+    position: absolute;
+    top:0;
+    left:0;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s;
+}
 
 .store {
     background: #fff;
@@ -118,8 +139,16 @@ select, button, input {
     <select id="options"></select><br>
     <button id="sendBtn" onclick="send()">Send</button>
 
-    <div class="bar"><div id="hp" class="fill hp"></div></div>
-    <div class="bar"><div id="anger" class="fill anger"></div></div>
+    <!-- HP Bar -->
+    <div class="bar">
+        <div id="hpGreen" class="fill hpGreen"></div>
+        <div id="hpRed" class="fill hpRed"></div>
+    </div>
+
+    <!-- Anger Bar -->
+    <div class="bar">
+        <div id="anger" class="anger"></div>
+    </div>
 
     <div id="response"></div>
 </div>
@@ -136,7 +165,8 @@ const response = document.getElementById("response");
 const options = document.getElementById("options");
 const logo = document.getElementById("logo");
 const sendBtn = document.getElementById("sendBtn");
-const hpBar = document.getElementById("hp");
+const hpGreen = document.getElementById("hpGreen");
+const hpRed = document.getElementById("hpRed");
 const angerBar = document.getElementById("anger");
 
 function updateCoins() {
@@ -251,27 +281,35 @@ function send() {
 
     // Update anger
     anger += add;
+
+    // HIT HP cuma saat anger penuh
     if (anger >= 100) {
         reply += " 👊";
         coins += 50;
-        anger = 0;
         updateCoins();
+
+        hpPercent -= damage;
+        if (hpPercent < 0) hpPercent = 0;
+
+        anger = 0; // reset anger
     }
+
+    // Update anger bar
     angerBar.style.width = anger + "%";
 
-    // =================== AUTOMATIC HP DAMAGE ===================
-    hpPercent -= damage;
-    if (hpPercent < 0) hpPercent = 0;
+    // Update HP bar dengan dua div
+    hpGreen.style.width = (hpPercent / maxHP * 100) + "%";
+    hpRed.style.width = ((maxHP - hpPercent) / maxHP * 100) + "%";
 
-    hpBar.style.background = `linear-gradient(to left, red ${100 - (hpPercent / maxHP * 100)}%, green ${(hpPercent / maxHP * 100)}%)`;
-
+    // cek HP habis
     if (hpPercent <= 0) {
         coins -= 100;
         if (coins < 0) coins = 0;
         updateCoins();
         alert("HP habis! Coins -100");
         hpPercent = maxHP;
-        hpBar.style.background = "green";
+        hpGreen.style.width = "100%";
+        hpRed.style.width = "0%";
     }
 
     response.className = ai;
