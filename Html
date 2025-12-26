@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Chat Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #eef;
+    margin: 0;
+    text-align: center;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: #222;
+    color: white;
+}
+
+#coins { font-size: 18px; }
+#storeBtn { cursor: pointer; }
+
+#logo {
+    font-size: 90px;
+    margin: 10px;
+}
+
+.hidden { display: none; }
+
+select, button, input {
+    padding: 8px;
+    font-size: 16px;
+    margin: 5px;
+}
+
+#response {
+    font-size: 28px;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.lockedText {
+    color: red;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.watermelon { color: green; }
+.zombie { color: darkgreen; }
+.demon { color: purple; }
+
+.bar {
+    width: 80%;
+    height: 30px;
+    background: #aaa; /* abu-abu */
+    margin: 10px auto;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.fill {
+    height: 100%;
+    transition: width 0.3s;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.hp { background: green; width: 100%; z-index: 1; }
+.anger { background: orange; width: 0%; z-index: 2; }
+
+.store {
+    background: #fff;
+    padding: 20px;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div id="storeBtn" onclick="openStore()">🛒 Store</div>
+    <div id="coins">🪙 0</div>
+</header>
+
+<div id="logo">🤖</div>
+
+<!-- ACCOUNT -->
+<div id="account">
+    <h2>Create Account</h2>
+    <input id="username" placeholder="Username"><br>
+    <input id="password" type="password" placeholder="Password"><br>
+    <button onclick="createAccount()">Create</button>
+</div>
+
+<!-- STORE -->
+<div id="store" class="hidden store">
+    <h2>Store</h2>
+    <button onclick="buyAI('watermelon')">🍉 Watermelon – 1500 🪙</button><br><br>
+    <button onclick="buyAI('demon')">😈 Demon – 750 🪙</button><br><br>
+    <button onclick="closeStore()">⬅ Back</button>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="hidden">
+    <h2>Choose AI</h2>
+    <select id="ai" onchange="updateAI()">
+        <option value="">Select AI</option>
+        <option value="watermelon">Watermelon 🍉</option>
+        <option value="zombie">Zomboy 🧟‍♂️</option>
+        <option value="demon">Demon 😈</option>
+    </select>
+
+    <br><br>
+    <select id="options"></select><br>
+    <button id="sendBtn" onclick="send()">Send</button>
+
+    <div class="bar"><div id="hp" class="fill hp"></div></div>
+    <div class="bar"><div id="anger" class="fill anger"></div></div>
+
+    <div id="response"></div>
+</div>
+
+<script>
+let coins = 0;
+let owned = { zombie: true };
+let anger = 0;
+let maxHP = 175;
+let hpPercent = maxHP;
+
+const coinsEl = document.getElementById("coins");
+const response = document.getElementById("response");
+const options = document.getElementById("options");
+const logo = document.getElementById("logo");
+const sendBtn = document.getElementById("sendBtn");
+const hpBar = document.getElementById("hp");
+const angerBar = document.getElementById("anger");
+
+function updateCoins() {
+    coinsEl.innerText = "🪙 " + coins;
+}
+
+function createAccount() {
+    if (username.value && password.value) {
+        account.classList.add("hidden");
+        chat.classList.remove("hidden");
+        updateCoins();
+    } else alert("Fill username & password!");
+}
+
+function openStore() {
+    store.classList.remove("hidden");
+    chat.classList.add("hidden");
+}
+
+function closeStore() {
+    store.classList.add("hidden");
+    chat.classList.remove("hidden");
+}
+
+function buyAI(ai) {
+    const price = ai === "watermelon" ? 1500 : 750;
+    if (owned[ai]) return alert("Already owned!");
+    if (coins >= price) {
+        coins -= price;
+        owned[ai] = true;
+        updateCoins();
+        alert("AI Unlocked!");
+    } else alert("Not enough coins!");
+}
+
+function updateAI() {
+    const ai = document.getElementById("ai").value;
+
+    anger = 0;
+    angerBar.style.width = "0%";
+    options.innerHTML = "";
+    response.innerText = "";
+
+    if (ai && !owned[ai]) {
+        logo.innerText = "🔒";
+        response.innerHTML = "<div class='lockedText'>AI LOCKED<br>BUY IN STORE 🛒</div>";
+        options.disabled = true;
+        sendBtn.disabled = true;
+        return;
+    }
+
+    options.disabled = false;
+    sendBtn.disabled = false;
+
+    if (ai === "watermelon") {
+        logo.innerText = "🍉";
+        options.innerHTML = `
+            <option value="WHO">WHO ARE U</option>
+            <option value="EAT">CAN I EAT U?</option>
+            <option value="BITTER">WATERMELON IS BITTER!!</option>
+            <option value="LEMON">WATERMELON OR LEMON</option>`;
+    }
+
+    if (ai === "zombie") {
+        logo.innerText = "🧟‍♂️";
+        options.innerHTML = `
+            <option value="WHO">WHO ARE U</option>
+            <option value="BRAIN">IS MY BRAIN DELICIOUS?</option>
+            <option value="NO_BRAIN">U WANT TO EAT MY BRAIN CUZ U HAVE NO BRAIN!</option>
+            <option value="BREAIN">I WANZ YO BREAINZZZ</option>`;
+    }
+
+    if (ai === "demon") {
+        logo.innerText = "😈";
+        options.innerHTML = `
+            <option value="WHO">Who are u</option>
+            <option value="HATE">I HATE U</option>
+            <option value="LOSER">LOSER</option>
+            <option value="HAHA">HAHAHAHA</option>`;
+    }
+}
+
+function send() {
+    const ai = document.getElementById("ai").value;
+    const msg = options.value;
+    let reply = "", add = 0;
+    let damage = 0;
+
+    // Watermelon
+    if (ai === "watermelon") {
+        if (msg === "WHO") { reply = "AI: I AM WATERMELON 😈"; add = 10; damage = 5; }
+        if (msg === "EAT") { reply = "AI: I AM WATERMELON 😈"; add = 20; damage = 10; }
+        if (msg === "BITTER") { reply = "NO U BITTER"; add = 35; damage = 15; }
+        if (msg === "LEMON") { reply = "WATERMELON, WHAT KIND OF QUESTION IS THAT!!"; add = 25; damage = 10; }
+    }
+
+    // Zomboy
+    if (ai === "zombie") {
+        if (msg === "WHO") { reply = "AI: I WANZ YO BREAINZZ 🧟‍♂️"; add = 25; damage = 10; }
+        if (msg === "BRAIN") { reply = "AI: I WANZ YO BREAINZZ 🧟‍♂️"; add = 25; damage = 10; }
+        if (msg === "NO_BRAIN") { reply = "GRR I WANZZ BRRAAINNZZZ"; add = 40; damage = 20; }
+        if (msg === "BREAIN") { reply = "GRRRRRRRRR"; add = 25; damage = 10; }
+    }
+
+    // Demon
+    if (ai === "demon") {
+        if (msg === "WHO") { reply = "AI: ME?. I AM DEMON"; add = 10; damage = 5; }
+        if (msg === "HATE") { reply = "AI: WHAT GRRR"; add = 25; damage = 15; }
+        if (msg === "LOSER") { reply = "AI: ITS U"; add = 35; damage = 20; }
+        if (msg === "HAHA") { reply = "AI: WHATT?"; add = 15; damage = 5; }
+    }
+
+    // Update anger
+    anger += add;
+    if (anger >= 100) {
+        reply += " 👊";
+        coins += 50;
+        anger = 0;
+        updateCoins();
+    }
+    angerBar.style.width = anger + "%";
+
+    // =================== AUTOMATIC HP DAMAGE ===================
+    hpPercent -= damage;
+    if (hpPercent < 0) hpPercent = 0;
+
+    hpBar.style.background = `linear-gradient(to left, red ${100 - (hpPercent / maxHP * 100)}%, green ${(hpPercent / maxHP * 100)}%)`;
+
+    if (hpPercent <= 0) {
+        coins -= 100;
+        if (coins < 0) coins = 0;
+        updateCoins();
+        alert("HP habis! Coins -100");
+        hpPercent = maxHP;
+        hpBar.style.background = "green";
+    }
+
+    response.className = ai;
+    response.innerText = reply;
+}
+</script>
+
+</body>
+</html>
