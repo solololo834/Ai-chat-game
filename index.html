@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,6 +84,8 @@ select, button, input { padding: 8px; font-size: 16px; margin: 5px; }
 }
 
 #submitCodeBtn:hover { background: #45a049; }
+
+#equipButtons button { min-width: 120px; }
 </style>
 </head>
 <body>
@@ -116,6 +117,12 @@ select, button, input { padding: 8px; font-size: 16px; margin: 5px; }
 <button onclick="buySword()">⚔️ Sword – 1000 🪙</button><br><br>
 <button onclick="buyDiamond()">🗡️ Diamond Sword – 2000 🪙</button><br><br>
 <button onclick="closeStore()">⬅ Back</button>
+</div>
+
+<!-- Equip Buttons -->
+<div id="equipButtons" class="hidden">
+<button id="equipSword" onclick="equipSwordFunc()">⚔️ Sword</button>
+<button id="equipDiamond" onclick="equipDiamondFunc()">🗡️ Diamond Sword</button>
 </div>
 
 <!-- Chat -->
@@ -177,18 +184,30 @@ const stabBtnDiv=document.getElementById("stabBtnDiv");
 const stabBtn=document.getElementById("stabBtn");
 const codeModal=document.getElementById("codeModal");
 const codeInput=document.getElementById("codeInput");
+const equipDiv=document.getElementById("equipButtons");
+const equipSwordBtn=document.getElementById("equipSword");
+const equipDiamondBtn=document.getElementById("equipDiamond");
 
 function updateBars(){
   hpGreen.style.width=(hp/maxHP*100)+"%";
   hpRed.style.width=((maxHP-hp)/maxHP*100)+"%";
   angerBar.style.width=anger+"%";
   coinsEl.innerText="🪙 "+coins;
+  updateEquipButtons();
+}
+
+function updateEquipButtons(){
+  equipSwordBtn.disabled=!hasSword;
+  equipSwordBtn.style.backgroundColor=hasSword?(equip==="sword"?"green":"red"):"grey";
+  equipDiamondBtn.disabled=!hasDiamond;
+  equipDiamondBtn.style.backgroundColor=hasDiamond?(equip==="diamond"?"green":"red"):"grey";
 }
 
 function createAccount(){
   if(username.value && password.value){
     account.classList.add("hidden");
     chat.classList.remove("hidden");
+    equipDiv.classList.remove("hidden");
     updateBars();
   }
 }
@@ -198,8 +217,11 @@ function closeStore(){ store.classList.add("hidden"); chat.classList.remove("hid
 
 function buyAI(ai){ const price=ai==="watermelon"?1500:750; if(owned[ai]||coins<price)return; coins-=price; owned[ai]=true; updateBars(); }
 function buyShield(){ if(coins<500)return; coins-=500; maxHP+=50; hp+=50; updateBars(); hasShield=true; }
-function buySword(){ if(coins<1000||hasSword)return; coins-=1000; hasSword=true; updateBars(); }
-function buyDiamond(){ if(coins<2000||hasDiamond)return; coins-=2000; hasDiamond=true; updateBars(); }
+function buySword(){ if(coins<1000||hasSword)return; coins-=1000; hasSword=true; updateBars(); updateEquipButtons(); }
+function buyDiamond(){ if(coins<2000||hasDiamond)return; coins-=2000; hasDiamond=true; updateBars(); updateEquipButtons(); }
+
+function equipSwordFunc(){ if(!hasSword) return; equip="sword"; updateEquipButtons(); }
+function equipDiamondFunc(){ if(!hasDiamond) return; equip="diamond"; updateEquipButtons(); }
 
 function updateAI(){
   anger=0; updateBars(); response.innerText="";
@@ -252,4 +274,4 @@ function submitCode(){
 updateBars();
 </script>
 </body>
-</html>
+  </html>
