@@ -20,6 +20,8 @@ select, button, input { padding: 8px; font-size: 16px; margin: 5px; }
 .fill { height: 100%; position: absolute; top: 0; }
 .hpGreen { background: green; left: 0; }
 .hpRed { background: red; right: 0; }
+.aiHPGreen { background: lightgreen; left: 0; }
+.aiHPRed { background: red; right: 0; }
 .anger { background: orange; left: 0; }
 
 .hidden { display: none; }
@@ -147,6 +149,11 @@ select, button, input { padding: 8px; font-size: 16px; margin: 5px; }
 <div id="anger" class="fill anger"></div>
 </div>
 
+<div class="bar hidden" id="aiHPBar">
+<div class="fill aiHPGreen" id="aiHPGreen"></div>
+<div class="fill aiHPRed" id="aiHPRed"></div>
+</div>
+
 <div id="stabBtnDiv" class="hidden"><button id="stabBtn" onclick="stabAI()">STAB 🗡️</button></div>
 
 <div id="response"></div>
@@ -168,7 +175,7 @@ select, button, input { padding: 8px; font-size: 16px; margin: 5px; }
 <script>
 let coins = 0, anger = 0, maxHP = 175, hp = maxHP;
 let owned = { zombie:true }, hasSword=false, hasDiamond=false, equip="none", hasShield=false;
-let parryCount=0, currentAI=null, aiHP=0;
+let parryCount=0, currentAI=null, aiHP=0, currentAIMaxHP=0;
 
 const hpGreen=document.getElementById("hpGreen");
 const hpRed=document.getElementById("hpRed");
@@ -187,6 +194,9 @@ const codeInput=document.getElementById("codeInput");
 const equipDiv=document.getElementById("equipButtons");
 const equipSwordBtn=document.getElementById("equipSword");
 const equipDiamondBtn=document.getElementById("equipDiamond");
+const aiHPBar=document.getElementById("aiHPBar");
+const aiHPGreen=document.getElementById("aiHPGreen");
+const aiHPRed=document.getElementById("aiHPRed");
 
 function updateBars(){
   hpGreen.style.width=(hp/maxHP*100)+"%";
@@ -194,6 +204,7 @@ function updateBars(){
   angerBar.style.width=anger+"%";
   coinsEl.innerText="🪙 "+coins;
   updateEquipButtons();
+  updateAIHPBar();
 }
 
 function updateEquipButtons(){
@@ -201,6 +212,16 @@ function updateEquipButtons(){
   equipSwordBtn.style.backgroundColor=hasSword?(equip==="sword"?"green":"red"):"grey";
   equipDiamondBtn.disabled=!hasDiamond;
   equipDiamondBtn.style.backgroundColor=hasDiamond?(equip==="diamond"?"green":"red"):"grey";
+}
+
+function updateAIHPBar(){
+  if(equip==="diamond" && aiHP>0){ 
+    aiHPBar.classList.remove("hidden"); 
+  } else { 
+    aiHPBar.classList.add("hidden"); 
+  }
+  aiHPGreen.style.width=(aiHP/currentAIMaxHP*100||0)+"%";
+  aiHPRed.style.width=((currentAIMaxHP-aiHP)/currentAIMaxHP*100||0)+"%";
 }
 
 function createAccount(){
@@ -221,15 +242,16 @@ function buySword(){ if(coins<1000||hasSword)return; coins-=1000; hasSword=true;
 function buyDiamond(){ if(coins<2000||hasDiamond)return; coins-=2000; hasDiamond=true; updateBars(); updateEquipButtons(); }
 
 function equipSwordFunc(){ if(!hasSword) return; equip="sword"; updateEquipButtons(); }
-function equipDiamondFunc(){ if(!hasDiamond) return; equip="diamond"; updateEquipButtons(); }
+function equipDiamondFunc(){ if(!hasDiamond) return; equip="diamond"; updateEquipButtons(); updateAIHPBar(); }
 
 function updateAI(){
   anger=0; updateBars(); response.innerText="";
   const ai=document.getElementById("ai").value; currentAI=ai; stabBtnDiv.classList.add("hidden");
   if(ai&&!owned[ai]){ logo.innerText="🔒"; options.innerHTML=""; return; }
-  if(ai==="watermelon"){ logo.innerText="🍉"; aiHP=20; options.innerHTML=`<option value="WHO">WHO ARE U</option><option value="EAT">CAN I EAT U?</option><option value="BITTER">WATERMELON IS BITTER!!</option><option value="LEMON">WATERMELON OR LEMON</option>`}
-  if(ai==="zombie"){ logo.innerText="🧟‍♂️"; aiHP=100; options.innerHTML=`<option value="WHO">WHO ARE U</option><option value="BRAIN">IS MY BRAIN DELICIOUS?</option><option value="NO_BRAIN">U WANT MY BRAIN CUZ U HAVE NO BRAIN!</option><option value="BREAIN">I WANZ YO BREAINZZZ</option>`}
-  if(ai==="demon"){ logo.innerText="😈"; aiHP=200; options.innerHTML=`<option value="WHO">Who are u</option><option value="HATE">I HATE U</option><option value="LOSER">LOSER</option><option value="HAHA">HAHAHAHA</option>`}
+  if(ai==="watermelon"){ logo.innerText="🍉"; aiHP=25; currentAIMaxHP=25; options.innerHTML=`<option value="WHO">WHO ARE U</option><option value="EAT">CAN I EAT U?</option><option value="BITTER">WATERMELON IS BITTER!!</option><option value="LEMON">WATERMELON OR LEMON</option>`}
+  if(ai==="zombie"){ logo.innerText="🧟‍♂️"; aiHP=100; currentAIMaxHP=100; options.innerHTML=`<option value="WHO">WHO ARE U</option><option value="BRAIN">IS MY BRAIN DELICIOUS?</option><option value="NO_BRAIN">U WANT MY BRAIN CUZ U HAVE NO BRAIN!</option><option value="BREAIN">I WANZ YO BREAINZZZ</option>`}
+  if(ai==="demon"){ logo.innerText="😈"; aiHP=200; currentAIMaxHP=200; options.innerHTML=`<option value="WHO">Who are u</option><option value="HATE">I HATE U</option><option value="LOSER">LOSER</option><option value="HAHA">HAHAHAHA</option>`}
+  updateAIHPBar();
 }
 
 function effect(el){ el.style.display="flex"; document.body.classList.add("shake"); setTimeout(()=>{ el.style.display="none"; document.body.classList.remove("shake"); },2000); }
@@ -256,10 +278,10 @@ function send(){
 
 function stabAI(){
   if(!currentAI||aiHP<=0) return;
-  aiHP -= 25; coins+=250; stabBtnDiv.classList.add("hidden");
-  if(aiHP<=0){ coins+=1000; aiHP=0; }
-  alert(currentAI.toUpperCase()+" HP after stab: "+aiHP);
-  updateBars();
+  let damage = equip==="diamond"?75:25;
+  aiHP -= damage; coins+=250; stabBtnDiv.classList.add("hidden");
+  if(aiHP<=0){ coins+=500; aiHP=0; alert(currentAI.toUpperCase()+" HP is 0! You got 500 🪙"); }
+  updateAIHPBar(); updateBars();
 }
 
 /* --- CODE MENU --- */
